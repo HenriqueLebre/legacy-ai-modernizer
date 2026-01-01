@@ -1,6 +1,5 @@
-"""
-Legacy AI Modernizer - AI agent for safe code modernization.
-"""
+"""Legacy ERP Package - Sample codebase for modernization demo."""
 
-__version__ = "0.1.0"
+from . import pricing, taxes, inventory
 
+__all__ = ["pricing", "taxes", "inventory"]
