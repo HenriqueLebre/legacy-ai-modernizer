@@ -1,0 +1,42 @@
+﻿@"
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*.so
+.Python
+.venv
+venv
+env
+.eggs
+*.egg-info
+
+# IDE
+.idea
+.vscode
+*.swp
+
+# Testing
+.pytest_cache
+.coverage
+htmlcov
+.mypy_cache
+
+# Project outputs
+reports/
+patches/
+*.patch
+*.diff
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Docs (keep README and LICENSE)
+TESTS.md
+COMMITS.md
+"@ | Out-File -FilePath ".dockerignore" -Encoding UTF8

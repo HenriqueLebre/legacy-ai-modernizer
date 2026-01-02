@@ -1,8 +1,11 @@
 """Report generation module."""
+
 from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+
 from . import __version__
 from .analyze import AnalysisResult
 from .validate import ValidationResult
@@ -28,11 +31,15 @@ class ModernizationReport:
     def to_markdown(self) -> str:
         status = "[OK] SUCCESS" if self.success else "[X] FAILED"
         syntax = "[OK]" if self.validation and self.validation.syntax_valid else "[X]"
-        tests = "[OK]" if self.validation and self.validation.tests_passed else ("[X]" if self.validation and self.validation.tests_passed is False else "[SKIP]")
+        tests = (
+            "[OK]"
+            if self.validation and self.validation.tests_passed
+            else ("[X]" if self.validation and self.validation.tests_passed is False else "[SKIP]")
+        )
 
         md = f"""# Modernization Report
 - **File**: `{self.filename}`
-- **Target**: `{self.target or 'N/A'}`
+- **Target**: `{self.target or "N/A"}`
 - **Type**: `{self.improvement_type}`
 - **Status**: {status}
 
@@ -56,17 +63,48 @@ class ModernizationReport:
         return path
 
 
-def create_success_report(filename: str, analysis: AnalysisResult, validation: ValidationResult, diff: str) -> ModernizationReport:
-    return ModernizationReport(filename, analysis.target, analysis.improvement_type, analysis.description,
-                               analysis.risk_level, analysis.reasoning, True, validation, diff)
+def create_success_report(
+    filename: str, analysis: AnalysisResult, validation: ValidationResult, diff: str
+) -> ModernizationReport:
+    return ModernizationReport(
+        filename,
+        analysis.target,
+        analysis.improvement_type,
+        analysis.description,
+        analysis.risk_level,
+        analysis.reasoning,
+        True,
+        validation,
+        diff,
+    )
 
 
-def create_failure_report(filename: str, analysis: AnalysisResult, validation: ValidationResult | None, reason: str) -> ModernizationReport:
-    return ModernizationReport(filename, analysis.target, analysis.improvement_type, analysis.description,
-                               analysis.risk_level, analysis.reasoning, False, validation, None, reason)
+def create_failure_report(
+    filename: str, analysis: AnalysisResult, validation: ValidationResult | None, reason: str
+) -> ModernizationReport:
+    return ModernizationReport(
+        filename,
+        analysis.target,
+        analysis.improvement_type,
+        analysis.description,
+        analysis.risk_level,
+        analysis.reasoning,
+        False,
+        validation,
+        None,
+        reason,
+    )
 
 
 def create_no_changes_report(filename: str) -> ModernizationReport:
-    return ModernizationReport(filename, None, "none", "No safe improvements identified", "none",
-                               "Code is already well-structured", True, None, None)
-
+    return ModernizationReport(
+        filename,
+        None,
+        "none",
+        "No safe improvements identified",
+        "none",
+        "Code is already well-structured",
+        True,
+        None,
+        None,
+    )

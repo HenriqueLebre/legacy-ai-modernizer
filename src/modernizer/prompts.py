@@ -14,9 +14,22 @@ File: {filename}
 ```
 
 Respond in JSON:
-{{"target": "function_name", "improvement_type": "type_hints|variable_names|docstring|extract_function|constants|simplify", "description": "what to change", "risk_level": "low|medium", "reasoning": "why"}}
+{{
+    "target": "function_name",
+    "improvement_type": "type_hints|variable_names|docstring|extract_function|constants|simplify",
+    "description": "what to change",
+    "risk_level": "low|medium",
+    "reasoning": "why"
+}}
 
-If no safe improvement, respond: {{"target": null, "improvement_type": "none", "description": "Code is well-structured", "risk_level": "none", "reasoning": "No safe improvements"}}"""
+If no safe improvement:
+{{
+    "target": null,
+    "improvement_type": "none",
+    "description": "Code is well-structured",
+    "risk_level": "none",
+    "reasoning": "No safe improvements"
+}}"""
 
 PATCH_SYSTEM = """Generate a unified diff. Rules:
 1. Output ONLY the diff  2. Don't change logic  3. Keep changes minimal

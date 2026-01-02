@@ -1,13 +1,22 @@
 """Main modernizer agent - orchestrates the full pipeline."""
+
 from __future__ import annotations
+
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
+
 from langchain_ollama import ChatOllama
-from .analyze import analyze_file, list_python_files, AnalysisResult
-from .patch import generate_patch, apply_patch, rollback
+
+from .analyze import AnalysisResult, analyze_file, list_python_files
+from .patch import apply_patch, generate_patch, rollback
+from .report import (
+    ModernizationReport,
+    create_failure_report,
+    create_no_changes_report,
+    create_success_report,
+)
 from .validate import validate_all
-from .report import ModernizationReport, create_success_report, create_failure_report, create_no_changes_report
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +38,11 @@ class ModernizerAgent:
 
     def __init__(self, config: ModernizationConfig | None = None):
         self.config = config or ModernizationConfig()
-        self.llm = ChatOllama(model=self.config.model_name, base_url=self.config.ollama_base_url,
-                              temperature=self.config.temperature)
+        self.llm = ChatOllama(
+            model=self.config.model_name,
+            base_url=self.config.ollama_base_url,
+            temperature=self.config.temperature,
+        )
         self.config.output_dir.mkdir(parents=True, exist_ok=True)
         self.config.patches_dir.mkdir(parents=True, exist_ok=True)
 
@@ -43,7 +55,9 @@ class ModernizerAgent:
         try:
             analysis = analyze_file(filepath, self.llm)
         except Exception as e:
-            return create_failure_report(filename, AnalysisResult(None, "error", str(e), "none", ""), None, str(e))
+            return create_failure_report(
+                filename, AnalysisResult(None, "error", str(e), "none", ""), None, str(e)
+            )
 
         if not analysis.has_improvement:
             return create_no_changes_report(filename)
@@ -54,13 +68,22 @@ class ModernizerAgent:
         except Exception as e:
             return create_failure_report(filename, analysis, None, f"Patch generation failed: {e}")
 
-        if len(diff.split('\n')) > self.config.max_diff_lines:
+        if len(diff.split("\n")) > self.config.max_diff_lines:
             return create_failure_report(filename, analysis, None, "Diff too large")
 
         if self.config.dry_run:
             (self.config.patches_dir / f"{filename}.patch").write_text(diff)
-            return ModernizationReport(filename, analysis.target, analysis.improvement_type, analysis.description,
-                                       analysis.risk_level, analysis.reasoning, True, None, diff)
+            return ModernizationReport(
+                filename,
+                analysis.target,
+                analysis.improvement_type,
+                analysis.description,
+                analysis.risk_level,
+                analysis.reasoning,
+                True,
+                None,
+                diff,
+            )
 
         # Step 3: Apply patch
         patch_result = apply_patch(filepath, diff)
@@ -73,14 +96,20 @@ class ModernizerAgent:
         # Step 5: Rollback if failed
         if not validation.is_valid:
             rollback(filepath, patch_result.original_code)
-            reason = f"Syntax: {validation.syntax_error}" if not validation.syntax_valid else "Tests failed"
+            reason = (
+                f"Syntax: {validation.syntax_error}"
+                if not validation.syntax_valid
+                else "Tests failed"
+            )
             return create_failure_report(filename, analysis, validation, reason)
 
         # Success
         (self.config.patches_dir / f"{filename}.patch").write_text(diff)
         return create_success_report(filename, analysis, validation, diff)
 
-    def modernize_directory(self, directory: Path, test_dir: Path | None = None, max_files: int = 1) -> list[ModernizationReport]:
+    def modernize_directory(
+        self, directory: Path, test_dir: Path | None = None, max_files: int = 1
+    ) -> list[ModernizationReport]:
         """Modernize multiple files in a directory."""
         reports = []
         for filepath in list_python_files(directory)[:max_files]:
@@ -90,6 +119,10 @@ class ModernizerAgent:
         return reports
 
 
-def create_agent(model: str = "qwen2.5-coder:7b", dry_run: bool = False, run_tests: bool = True) -> ModernizerAgent:
+def create_agent(
+    model: str = "qwen2.5-coder:7b", dry_run: bool = False, run_tests: bool = True
+) -> ModernizerAgent:
     """Factory function to create a configured agent."""
-    return ModernizerAgent(ModernizationConfig(model_name=model, dry_run=dry_run, run_tests=run_tests))
+    return ModernizerAgent(
+        ModernizationConfig(model_name=model, dry_run=dry_run, run_tests=run_tests)
+    )

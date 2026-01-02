@@ -1,0 +1,37 @@
+﻿# Legacy AI Modernizer - Docker Compose
+# Usage: docker-compose up -d
+
+services:
+  # Ollama LLM Server
+  ollama:
+    image: ollama/ollama:latest
+    container_name: modernizer-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Legacy AI Modernizer
+  modernizer:
+    build: .
+    container_name: modernizer-app
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+    volumes:
+      - ./sample_legacy:/app/sample_legacy
+      - ./reports:/app/reports
+      - ./patches:/app/patches
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+volumes:
+  ollama_data:
