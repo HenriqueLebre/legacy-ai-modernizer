@@ -4,7 +4,7 @@
 
 FROM python:3.12-slim
 
-LABEL maintainer="Lebrin"
+LABEL maintainer="Henrique Lebre"
 LABEL description="AI agent that safely modernizes legacy Python code"
 LABEL version="0.1.0"
 
