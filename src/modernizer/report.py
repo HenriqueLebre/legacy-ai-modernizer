@@ -26,9 +26,9 @@ class ModernizationReport:
         self.timestamp = self.timestamp or datetime.now()
 
     def to_markdown(self) -> str:
-        status = "✅ SUCCESS" if self.success else "❌ FAILED"
-        syntax = "✅" if self.validation and self.validation.syntax_valid else "❌"
-        tests = "✅" if self.validation and self.validation.tests_passed else ("❌" if self.validation and self.validation.tests_passed is False else "⏭️")
+        status = "[OK] SUCCESS" if self.success else "[X] FAILED"
+        syntax = "[OK]" if self.validation and self.validation.syntax_valid else "[X]"
+        tests = "[OK]" if self.validation and self.validation.tests_passed else ("[X]" if self.validation and self.validation.tests_passed is False else "[SKIP]")
 
         md = f"""# Modernization Report
 - **File**: `{self.filename}`
@@ -52,7 +52,7 @@ class ModernizationReport:
         output_dir.mkdir(parents=True, exist_ok=True)
         filename = f"report_{self.timestamp:%Y%m%d_%H%M%S}_{self.filename.replace('.py', '')}.md"
         path = output_dir / filename
-        path.write_text(self.to_markdown())
+        path.write_text(self.to_markdown(), encoding="utf-8")
         return path
 
 
@@ -69,3 +69,4 @@ def create_failure_report(filename: str, analysis: AnalysisResult, validation: V
 def create_no_changes_report(filename: str) -> ModernizationReport:
     return ModernizationReport(filename, None, "none", "No safe improvements identified", "none",
                                "Code is already well-structured", True, None, None)
+

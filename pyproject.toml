@@ -36,6 +36,12 @@ modernizer = "modernizer.cli:app"
 [tool.hatch.build.targets.wheel]
 packages = ["src/modernizer"]
 
+[tool.hatch.build.targets.sdist]
+include = ["src/modernizer"]
+
+[tool.hatch.build]
+sources = ["src"]
+
 [tool.ruff]
 target-version = "py311"
 line-length = 100
